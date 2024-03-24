@@ -1,0 +1,44 @@
+#!/bin/dash
+
+#if the directory exists
+if [ -d '.tigger' ]; then
+    :
+else
+#if directory does not exist
+    echo "tigger-add: error: tigger repository directory .tigger not found" 1>&2
+    exit 1
+fi
+
+if [ $# -eq 0 ]; then
+#check there are no arguments
+    echo "usage: tigger-add <filenames>" 1>&2
+    exit 1
+fi
+
+
+
+#grab the file given in the path
+for file in "$@";
+do
+#copy it into our index
+    message=$(echo "$file" | grep -E '[A-Za-z0-9]')
+    if [ $? -ne 0 ]; then
+        #error for invalid name
+        echo "tigger-add: error: invalid filename '$file'" 1>&2
+        exit 1
+    fi
+    #check that all files exist before adding
+    if [ -e "$file" ]; then
+        :
+    else
+    #if the file does not exist we can not open it
+        echo "tigger-add: error: can not open '$file'" 1>&2
+        exit 1
+    fi
+done
+#add files into directory
+for file in "$@";
+do
+    cp "$file" .tigger/.index/
+done
+ 

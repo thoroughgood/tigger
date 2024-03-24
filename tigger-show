@@ -1,0 +1,54 @@
+#!/bin/dash
+
+#check if correct num of arguments
+if [ $# -ne 1 ]; then
+    echo "usage: tigger-show <commit>:<filename>" 1>&2
+    exit 1
+fi
+#check if .tigger directory exists
+if [ -d '.tigger' ]; then
+    :
+else
+    echo "tigger-show: error: tigger repository directory .tigger not found" 1>&2
+    exit 1
+fi
+#check if the string passed in is valid object
+valid=$(echo $1 | grep -E ':.*')
+if [ $? -eq 1 ]; then
+    echo "tigger-show: error: invalid object $1"
+    exit 1
+fi
+#hold the number and file name
+commit_num=$(echo $1 | cut -d':' -f1)
+commit_file=$(echo $1 | cut -d':' -f2)
+
+filename=$(echo "$commit_file" | grep -E '[A-Za-z0-9]')
+if [ $? -ne 0 ]; then
+    #error for invalid name
+    echo "tigger-add: error: invalid filename '$file '" 1>&2
+    exit 1
+fi
+#if the directory for the commit can't be found
+if [ ! -d .tigger/.index/commit/"$commit_num" ]; then
+    echo "tigger-show: error: unknown commit '$commit_num'" 1>&2
+    exit 1
+fi
+#if the commit number is not provided
+if [ "$commit_num" = '' ] 2>/dev/null; then
+    if [ -e .tigger/.index/"$commit_file" ]; then
+        cat .tigger/.index/"$commit_file"
+    else
+        #if the file doesnt exist
+        echo "tigger-show: error: '$commit_file' not found in index" 1>&2
+        exit 1
+    fi
+else
+    #if the commit number is provided
+    if [ -e .tigger/.index/commit/"$commit_num"/"$commit_file" ]; then
+        cat .tigger/.index/commit/"$commit_num"/"$commit_file"
+    else
+        #if the file can not be found within the commit number
+        echo "tigger-show: error: '$commit_file' not found in commit $commit_num" 1>&2
+        exit 1
+    fi
+fi

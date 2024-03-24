@@ -1,0 +1,30 @@
+#!/bin/dash
+
+#count down from top to get commit msg in correct order
+counter=999
+dir=.tigger/.index/commit/
+#if wrong num of arguments, print error
+if [ $# -ne 0 ]; then
+    echo "usage: tigger-log" 1>&2
+    exit 1
+fi
+#check if directory exists
+if [ -e '.tigger' ]; then
+    :
+else
+    echo "tigger-log: error: tigger repository directory .tigger not found" 1>&2
+    exit 1
+fi
+#loop through commit directories and print commit message
+while [ "$counter" -ge 0 ];
+do
+    #if the directory does not exist, loop down without doing anything
+    if [ ! -d "$dir""$counter" ]; then
+        counter=$((counter-1))
+    else
+        echo -n "$counter "
+        cat "$dir""$counter"/commit_message.txt
+        counter=$((counter-1))
+    fi
+done
+

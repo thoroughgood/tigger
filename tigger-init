@@ -1,0 +1,16 @@
+#!/bin/dash
+#if there are any command line arguments, print error
+if [ $# -ne 0 ]; then
+    echo "usage: tigger-init" 1>&2
+    exit 1
+fi
+#if directory does not exist error
+if [ -d '.tigger' ]; then
+    echo "tigger-init: error: .tigger already exists"
+else
+#else initialise directories
+    mkdir .tigger
+    mkdir .tigger/.index
+    mkdir .tigger/.index/commit
+    echo "Initialized empty tigger repository in .tigger"
+fi

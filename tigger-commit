@@ -1,0 +1,104 @@
+#!/bin/dash
+
+#if no cmd line arguments
+if [ $# -eq 0 ]; then
+    echo "usage: tigger-commit [-a] -m commit-message" 1>&2
+    exit 1
+fi
+#if directory does not exist error
+if [ -d '.tigger' ]; then
+    :
+else
+    echo "tigger-commit: error: tigger repository directory .tigger not found" 1>&2
+    exit 1
+fi
+commit_num=0
+#if -m is not included
+if [ "$1" != -m ] && [ "$2" != -m ]; then
+    echo "usage: tigger-commit [-a] -m commit-message" 1>&2
+    exit 1
+fi
+#if there is no chars in message
+message=$(echo $2 | grep -E "[a-zA-Z0-9]")
+if [ $? -ne 0 ]; then
+    echo "usage: tigger-commit [-a] -m commit-message" 1>&2
+    exit 1
+fi
+message=$(echo "$2" | wc -l)
+#if there is a new line in the message
+if [ "$message" -ne 1 ]; then
+    echo "tigger-commit: error: commit message can not contain a newline" 1>&2
+    exit 1
+fi
+#check for number of current commit files
+for counter in $(seq 0 1 999)
+do
+    if [ ! -d .tigger/.index/commit/"$counter" ]; then
+        commit_num="$counter"
+        break
+    fi
+done
+#confirm if we should make a commit based on if there are any files to commit
+make_commit=0
+#check if files are different
+recent_commit=$((counter-1))
+#we are now looking at files in index and comparing to the most recent commit
+for file in .tigger/.index/*
+do
+    #check if the file is a directory or not
+    if [ ! -d "$file" ]; then
+        file_name=$(echo "$file" | cut -d'/' -f3)
+        if [ "$file_name" = '*' ]; then
+            echo "nothing to commit" 1>&2
+            exit 1
+        fi
+        #if the file exists in the directory already, check comparisons
+        #if this is the first commit no comparisons are to be made
+        if [ -e .tigger/.index/"$file_name" ] && [ "$counter" -ne 0 ]; then
+            DIFF=$(diff "$file" .tigger/.index/commit/"$recent_commit"/"$file_name") 2>/dev/null
+            if [ "$?" -ne 0 ] && [ ! -d .tigger/.index/commit/"$counter" ]; then
+            #if the file is different
+                mkdir .tigger/.index/commit/"$counter"
+                make_commit=1
+            fi
+        else
+        #file does not exist, then add it 
+            if [ ! -d .tigger/.index/commit/"$counter" ]; then
+                #if the directory does not exist, create it
+                mkdir .tigger/.index/commit/"$counter"
+                make_commit=1
+            fi
+        fi
+    fi
+done
+
+#if we didnt end up making any changes, then we had nothing to commit
+if [ "$make_commit" -eq 0 ]; then
+    echo "nothing to commit" 1>&2
+    exit 1
+else
+    #if we ended up making changes, then we move the files to the new commit
+    for file in .tigger/.index/*
+    do
+        if [ ! -d "$file" ]; then
+            cp "$file" .tigger/.index/commit/"$counter"/
+        fi
+    done
+fi
+
+#after all files have been added, we can now insert commit message
+if [ "$1" = -m ]; then
+    if [ -z "$2" ]; then
+    :
+    else
+        echo "$2" >.tigger/.index/commit/"$commit_num"/commit_message.txt
+    fi
+else [ "$2" = -m ]
+    if [ -z "$3" ]; then
+    :
+    else
+        echo "$3" >.tigger/.index/commit/"$commit_num"/commit_message.txt
+    fi
+fi 
+#report success
+echo "Committed as commit $commit_num"
