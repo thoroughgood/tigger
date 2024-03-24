@@ -25,7 +25,7 @@ commit_file=$(echo $1 | cut -d':' -f2)
 filename=$(echo "$commit_file" | grep -E '[A-Za-z0-9]')
 if [ $? -ne 0 ]; then
     #error for invalid name
-    echo "tigger-add: error: invalid filename '$file '" 1>&2
+    echo "tigger-show: error: invalid filename '$file '" 1>&2
     exit 1
 fi
 #if the directory for the commit can't be found
@@ -34,7 +34,7 @@ if [ ! -d .tigger/.index/commit/"$commit_num" ]; then
     exit 1
 fi
 #if the commit number is not provided
-if [ "$commit_num" = '' ] 2>/dev/null; then
+if [ -z "$commit_num" ] 2>/dev/null; then
     if [ -e .tigger/.index/"$commit_file" ]; then
         cat .tigger/.index/"$commit_file"
     else

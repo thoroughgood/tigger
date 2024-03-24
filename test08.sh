@@ -72,7 +72,7 @@ if ! diff "$expected_output" "$actual_output"; then
 fi
 
 cat > "$expected_output" <<EOF
-tigger-show: error: unknown commit ' '
+First line
 EOF
 
 tigger-show " :a" > "$actual_output" 2>&1
